@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}家計簿管理アプリ{% endblock %}</title>
+    <!-- メインのスタイルシート -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style567.css') }}">
+    <!-- ページ固有のスタイルシートを追加するためのブロック -->
+    {% block extra_styles %}
+    {% endblock %}
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+</head>
+<body>
+    <!-- 左側のメニュー -->
+    <div class="menu">
+        <ul>
+            <li><a href="{{ url_for('index') }}">ホーム</a></li>
+            <li><a href="{{ url_for('monthly_goal') }}">収支目標</a></li>
+            <li><a href="{{ url_for('hearing') }}">ヒアリング</a></li>
+            <li><a href="{{ url_for('my_lifeplan') }}">マイライフプラン</a></li>
+            <li><a href="{{ url_for('about') }}">アバウト</a></li>
+            {% if current_user.is_authenticated %}
+                <li><a href="{{ url_for('mypage') }}">マイページ</a></li>
+                <!-- ログアウトリンクに確認ダイアログを追加 -->
+                <li><a href="{{ url_for('logout') }}" onclick="return confirm('ログアウトしますか？');">ログアウト</a></li>
+                <!-- スペースを確保するための空のリストアイテム -->
+                <li class="menu-space"></li>
+                <!-- 「チャット機能」と「サブスクリプション」にクラスとツールチップを追加 -->
+                <li><a href="{{ url_for('chat') }}" class="coming-soon" data-tooltip="この機能は近日中に実装予定です">チャット機能</a></li>
+                <li><a href="{{ url_for('subscription') }}" class="coming-soon" data-tooltip="この機能は近日中に実装予定です">サブスクリプション</a></li>
+            {% else %}
+                <li><a href="{{ url_for('login') }}">ログイン</a></li>
+                <li><a href="{{ url_for('register') }}">登録</a></li>
+            {% endif %}
+        </ul>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div class="content">
+        <!-- フラッシュメッセージの表示 -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <ul class="flashes">
+              {% for category, message in messages %}
+                <li class="{{ category }}">{{ message }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+
+        <!-- ページ固有のコンテンツ -->
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- ページ固有のスクリプトを追加するためのブロック -->
+    {% block extra_scripts %}
+    {% endblock %}
+</body>
+</html>

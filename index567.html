@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}ホーム - 家計簿管理アプリ{% endblock %}
+
+{% block content %}
+    <h1>ホーム</h1>
+    <div class="header">
+        <div class="ideal-living-expenses">
+            <h2>理想の年間生活費</h2>
+            <p>{{ ideal_living_expense }}万円</p>
+        </div>
+        <div class="comments">
+            <h2>りくちゃんコメント</h2>
+            <p>{{ comments }}</p>
+        </div>
+    </div>
+    
+    <!-- 月選択フォームの修正 -->
+    <div class="month-selection">
+        <form method="GET" action="{{ url_for('index') }}">
+            <p><strong>家計管理を開始する時期を選択してください</strong></p>
+            
+            <!-- 年の選択ボックス -->
+            <select name="start_year" id="start_year" class="form-control">
+                {% for year in years %}
+                    <option value="{{ year }}" {% if selected_year == year %}selected{% endif %}>
+                        {{ year }}
+                    </option>
+                {% endfor %}
+            </select>
+            <span>年</span>
+    
+            <!-- 月の選択ボックス -->
+            <select name="start_month" id="start_month" class="form-control">
+                {% for month in months %}
+                    <option value="{{ loop.index }}" {% if selected_month == loop.index %}selected{% endif %}>
+                        {{ month }}
+                    </option>
+                {% endfor %}
+            </select>
+            <span>月</span>
+    
+            <button type="submit" class="btn">表示</button>
+        </form>
+    </div>
+    
+    <div class="chart-section">
+        <h2>月時点目標と進捗</h2>
+        {% if bar_chart_url %}
+            <img src="data:image/png;base64,{{ bar_chart_url }}" alt="棒グラフ">
+        {% else %}
+            <p>グラフをここに表示</p>
+        {% endif %}
+    </div>
+{% endblock %}

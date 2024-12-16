@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}マイライフプラン - 家計簿管理アプリ{% endblock %}
+
+{% block content %}
+    <h1>理想の生活費シミュレーション</h1>
+    <p>理想の生活費: {{ ideal_living_expense }}万円</p>
+    <h2>資産推移グラフ</h2>
+    {% if graph_url %}
+        <img src="data:image/png;base64,{{ graph_url }}" alt="資産推移グラフ"><br>
+    {% else %}
+        <p>グラフをここに表示</p>
+    {% endif %}
+    <h3>エクセルファイル</h3>
+    <a href="{{ url_for('download') }}" class="btn">エクセルファイルをダウンロード</a>
+{% endblock %}

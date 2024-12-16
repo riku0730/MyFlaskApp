@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}ヒアリング{% endblock %}
+
+{% block content %}
+    <h1>ヒアリング</h1>
+    <form action="{{ url_for('simulate') }}" method="post">
+        <label for="age">現在の年齢:</label>
+        <input type="number" id="age" name="age" required><br>
+        <label for="retirement_age">退職年齢:</label>
+        <input type="number" id="retirement_age" name="retirement_age" required><br>
+        <label for="income">現在の年収(万円):</label>
+        <input type="number" id="income" name="income" required><br>
+        <label for="savings">現在の貯蓄額(万円):</label>
+        <input type="number" id="savings" name="savings" required><br>
+        <label for="peak_income">年収のピーク時の年収(万円):</label>
+        <input type="number" id="peak_income" name="peak_income" required><br>
+        <label for="rent">住居費(万円):</label>
+        <input type="number" id="rent" name="rent" required><br>
+        <label for="car_start_age">自動車購入開始年齢:</label>
+        <input type="number" id="car_start_age" name="car_start_age"><br>
+        <label for="car_price">自動車価格(万円):</label>
+        <input type="number" id="car_price" name="car_price"><br>
+        <label for="car_interval">自動車購入間隔(年):</label>
+        <input type="number" id="car_interval" name="car_interval"><br>
+        <button type="submit">シミュレーションを実行</button>
+    </form>
+{% endblock %}

@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}収支目標 - 家計簿管理アプリ{% endblock %}
+
+{% block extra_styles %}
+    <!-- FullCalendarのスタイルシート -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+    <h2>収支目標の設定</h2>
+    <div class="monthly-goal-form">
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                {{ form.annual_goal.label }}
+                {{ form.annual_goal(class="form-control") }}
+                {% for error in form.annual_goal.errors %}
+                    <span class="error">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                {{ form.submit(class="btn") }}
+            </div>
+        </form>
+    </div>
+    <div class="goal-display">
+        <h3>現在の目標</h3>
+        <p>年間目標: {{ annual_goal }} 万円</p>
+        <p>月間目標: {{ monthly_goal }} 万円</p>
+        <p id="monthly-expense">月間支出: 0.00万円</p> <!-- 初期値を設定 -->
+    </div>
+
+    <!-- カレンダーの追加 -->
+    <div id="calendar"></div>
+{% endblock %}
+
+{% block extra_scripts %}
+    <!-- FullCalendarのJavaScriptファイル -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            const calendarEl = document.getElementById('calendar');
+            const monthlyExpenseEl = document.getElementById('monthly-expense');
+            let dailyExpenses = {}; // 表示中の月の日付ごとの支出データ
+
+            const fetchExpenses = async (year, month) => {
+                const response = await fetch(`/get-expenses?year=${year}&month=${month}`);
+                return await response.json();
+            };
+
+            const updateMonthlyExpense = () => {
+                const total = Object.values(dailyExpenses).reduce((sum, value) => sum + value, 0);
+                monthlyExpenseEl.textContent = `月間支出: ${total.toFixed(2)}万円`;
+            };
+
+            const saveExpensesToServer = async (year, month) => {
+                await fetch('/save-expenses', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ year, month, expenses: dailyExpenses })
+                });
+            };
+
+            // 初期表示の年と月を設定
+            const initialDate = new Date();
+            let currentYear = initialDate.getFullYear();
+            let currentMonth = initialDate.getMonth() + 1; // 月は0始まり
+
+            dailyExpenses = await fetchExpenses(currentYear, currentMonth);
+
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'ja',
+                initialDate: `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`,
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: ''
+                },
+                showNonCurrentDates: false,
+                contentHeight: 'auto',
+                events: Object.keys(dailyExpenses).map(date => ({
+                    title: `${dailyExpenses[date]}万円`,
+                    start: date,
+                    allDay: true
+                })),
+                dateClick: async function (info) {
+                    const date = info.dateStr;
+                    const amount = prompt(`${date} の支出金額を入力してください (万円)`);
+
+                    if (amount !== null && !isNaN(amount)) {
+                        dailyExpenses[date] = parseFloat(amount);
+                        calendar.addEvent({
+                            title: `${amount}万円`,
+                            start: date,
+                            allDay: true
+                        });
+                        await saveExpensesToServer(currentYear, currentMonth);
+                        updateMonthlyExpense();
+                    }
+                },
+                eventClick: async function (info) {
+                    if (confirm(`${info.event.startStr} の支出を削除しますか？`)) {
+                        const date = info.event.startStr;
+                        delete dailyExpenses[date];
+                        info.event.remove();
+                        await saveExpensesToServer(currentYear, currentMonth);
+                        updateMonthlyExpense();
+                    }
+                },
+                datesSet: async function (info) {
+                    const newYear = info.start.getFullYear();
+                    const newMonth = info.start.getMonth() + 1;
+
+                    dailyExpenses = await fetchExpenses(newYear, newMonth);
+                    calendar.getEvents().forEach(event => event.remove());
+                    Object.keys(dailyExpenses).forEach(date => {
+                        calendar.addEvent({
+                            title: `${dailyExpenses[date]}万円`,
+                            start: date,
+                            allDay: true
+                        });
+                    });
+
+                    currentYear = newYear;
+                    currentMonth = newMonth;
+                    updateMonthlyExpense();
+                }
+            });
+
+            updateMonthlyExpense();
+            calendar.render();
+        });
+    </script>
+{% endblock %}
